@@ -1,0 +1,187 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #e0f7fa;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    padding: 20px;
+}
+
+header { margin-bottom: 10px; }
+
+/* 声音选择下拉框 */
+select {
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* 卡片主体 */
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: transform 0.3s;
+}
+
+.emoji-img { font-size: 80px; margin-bottom: 10px; }
+.english-word { font-size: 48px; font-weight: bold; color: #2196F3; margin: 10px 0; }
+.phonetic { color: #888; font-size: 18px; }
+.chinese-meaning { font-size: 24px; color: #555; margin-top: 10px; }
+
+/* 拼写模式样式 */
+.letter-box {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border-bottom: 3px solid #333;
+    margin: 5px;
+    font-size: 30px;
+    text-align: center;
+    text-transform: lowercase;
+}
+.letter-btn {
+    background: #ff9800;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin: 5px;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px #e65100;
+}
+.letter-btn:active { transform: translateY(4px); box-shadow: none; }
+
+/* 底部按钮 */
+.controls, .navigation { margin-top: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; }
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 50px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+    margin: 5px;
+}
+.mode-btn { background: #e1bee7; color: #4a148c; }
+.mode-btn.active { background: #9c27b0; color: white; font-weight: bold; }
+#playBtn { background: #4CAF50; color: white; transform: scale(1.1); }
+#prevBtn, #nextBtn { background: #2196F3; color: white; }
+
+/* 填空题选项 */
+.quiz-option {
+    display: block;
+    width: 80%;
+    margin: 10px auto;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.quiz-correct { background: #a5d6a7; }
+.quiz-wrong { background: #ef9a9a; }
+
+/* ... 保留之前的 CSS ... */
+
+/* 新增：顶部栏布局，让两个下拉框并排 */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.top-bar select {
+    flex: 1; /* 两个下拉框平分宽度 */
+    padding: 8px;
+    font-size: 14px;
+}
+
+/* 新增：卡片内的播放按钮样式 */
+.card-play-btn {
+    background-color: #e3f2fd; /* 很浅的蓝色背景 */
+    color: #1565c0;
+    border: 2px solid #bbdefb;
+    border-radius: 30px;
+    padding: 8px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.card-play-btn:hover {
+    background-color: #bbdefb;
+    transform: scale(1.05);
+}
+.card-play-btn:active {
+    transform: scale(0.95);
+}
+
+/* 调整卡片高度，因为现在里面内容多了 */
+.card {
+    min-height: 400px; /*稍微加高一点*/
+}
+
+/* ... 原有代码保持不变 ... */
+
+/* 填空题选项样式优化 */
+.quiz-option {
+    display: block;
+    width: 80%;
+    margin: 10px auto;
+    padding: 12px;
+    background: #f0f4f8; /* 默认浅灰蓝 */
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s;
+    color: #333;
+}
+
+.quiz-option:hover {
+    background: #e1f5fe;
+    border-color: #81d4fa;
+}
+
+/* 答对时的绿色样式 */
+.quiz-correct {
+    background-color: #c8e6c9 !important; /* 浅绿背景 */
+    border-color: #4caf50 !important;      /*以此强调*/
+    color: #2e7d32 !important;
+    font-weight: bold;
+}
+
+/* 答错时的红色样式 */
+.quiz-wrong {
+    background-color: #ffcdd2 !important; /* 浅红背景 */
+    border-color: #e57373 !important;
+    color: #c62828 !important;
+}
+
+/* 反馈文字区域 */
+#quiz-feedback {
+    min-height: 40px; /* 预留高度，防止页面跳动 */
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
