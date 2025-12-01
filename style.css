@@ -44,16 +44,40 @@ select {
 .phonetic { color: #888; font-size: 18px; }
 .chinese-meaning { font-size: 24px; color: #555; margin-top: 10px; }
 
-/* 拼写模式样式 */
+/* === 拼写区容器 (下划线格子) === */
+#slots-area {
+    display: flex;            /* 弹性布局 */
+    flex-wrap: nowrap;        /* 【关键】强制不换行，始终在一排 */
+    justify-content: center;  /* 居中对齐 */
+    align-items: center;      
+    gap: 4px;                 /* 紧凑的间距，防止浪费空间 */
+    width: 100%;              /* 占满容器宽度 */
+    padding: 0 5px;           /* 左右留一点安全距离 */
+    box-sizing: border-box;   /* 确保padding不会撑大容器 */
+    margin-bottom: 20px;
+}
+
+/* === 单个格子样式 (自适应宽度) === */
 .letter-box {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
+    /* 【关键】Flex设置 */
+    flex: 1;                  /* 权重为1：所有格子平分剩余空间 */
+    max-width: 50px;          /* 单词短时，格子最大不超过50px */
+    min-width: 25px;          /* 单词太长时，最小也要保留25px宽，保证能点 */
+    
+    /* 高度与外观 */
+    height: 50px;             /* 高度固定，整齐 */
     border-bottom: 3px solid #333;
-    margin: 5px;
-    font-size: 30px;
-    text-align: center;
+    
+    /* 内部文字居中 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* 【关键】动态字体大小 */
+    /* 最小16px，首选屏幕宽度的6%，最大32px -> 防止单词太长时字体溢出 */
+    font-size: clamp(16px, 6vw, 32px); 
     text-transform: lowercase;
+    margin: 0; /* 去掉margin，改用gap控制间距 */
 }
 .letter-btn {
     background: #ff9800;
@@ -66,7 +90,44 @@ select {
     cursor: pointer;
     box-shadow: 0 4px #e65100;
 }
-.letter-btn:active { transform: translateY(4px); box-shadow: none; }
+/* === 键盘区域 (字母按钮) === */
+#keyboard-area {
+    display: flex;
+    flex-wrap: wrap;          /* 建议：按钮区允许换行，因为如果单词太长，按钮排成一行会小到无法点击 */
+                              /* 如果你一定要按钮也强制一行，改为 nowrap 即可，但体验会变差 */
+    justify-content: center;
+    gap: 8px;                 /* 按钮之间的间距 */
+    width: 100%;
+}
+/* === 字母按钮样式 === */
+.letter-btn {
+    /* 外观美化 */
+    background: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px #e65100;
+    cursor: pointer;
+    
+    /* 【关键】尺寸控制 */
+    min-width: 40px;          /* 保证手指能点到的最小宽度 */
+    height: 45px;
+    padding: 0;               /* 清除内边距，完全靠flex控制 */
+    
+    /* 字体 */
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* 点击效果 */
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.letter-btn:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
 
 /* 底部按钮 */
 .controls, .navigation { margin-top: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; }
