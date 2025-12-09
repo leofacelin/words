@@ -1,8 +1,9 @@
 // === 状态管理 ===
-// 建立映射关系
+// 确保 unit1_data 和 unit2_data 已经在 HTML 中加载
 const allUnits = {
-    1: unit1_data,
-    2: unit2_data
+    1: typeof unit1_data !== 'undefined' ? unit1_data : [],
+    2: typeof unit2_data !== 'undefined' ? unit2_data : [],
+    3: typeof unit3_data !== 'undefined' ? unit3_data : []
 };
 
 let currentUnit = allUnits[1]; // 默认 Unit 1
@@ -10,38 +11,53 @@ let currentIndex = 0;
 let currentMode = 'learn'; 
 let voices = [];
 
-// ... (initVoices 和 speak 函数保持不变，为了节省篇幅略过，请保留原来的代码) ...
-// === 复制之前的 initVoices 和 speak 代码 ===
+// === 1. TTS 语音初始化 ===
 const voiceSelect = document.getElementById('voiceSelect');
 window.speechSynthesis.onvoiceschanged = initVoices;
+
 function initVoices() {
     voices = window.speechSynthesis.getVoices();
     voiceSelect.innerHTML = '';
+    
+    // 筛选英语声音
     const englishVoices = voices.filter(voice => voice.lang.includes('en'));
+    
     englishVoices.forEach((voice, index) => {
         const option = document.createElement('option');
         option.textContent = `${voice.name} (${voice.lang})`;
         option.value = index;
-        if (voice.name.includes('Google') || voice.name.includes('Samantha')) option.selected = true;
+        // 尝试默认选中好听的声音
+        if (voice.name.includes('Google') || voice.name.includes('Samantha') || voice.name.includes('Zira')) {
+            option.selected = true;
+        }
         option.setAttribute('data-name', voice.name);
         voiceSelect.appendChild(option);
     });
 }
+
 function speak(text) {
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
     msg.text = text;
     const selectedVoiceName = voiceSelect.selectedOptions[0]?.getAttribute('data-name');
-    if (selectedVoiceName) msg.voice = voices.find(v => v.name === selectedVoiceName);
+    if (selectedVoiceName) {
+        msg.voice = voices.find(v => v.name === selectedVoiceName);
+    }
     msg.rate = 0.8;
     window.speechSynthesis.speak(msg);
 }
-// ===========================================
 
-// === 核心渲染逻辑 (有修改) ===
+// === 2. 核心渲染逻辑 ===
 function renderCard() {
     const gameArea = document.getElementById('game-area');
     const item = currentUnit[currentIndex];
+    
+    // 如果数据没加载好，防止报错
+    if (!item) {
+        gameArea.innerHTML = "<div>暂无数据</div>";
+        return;
+    }
+
     let html = '';
 
     // --- 顶部通用：图片 ---
@@ -51,8 +67,6 @@ function renderCard() {
         // --- 记忆模式 ---
         html += `<div class="english-word">${item.word}</div>`;
         html += `<div class="chinese-meaning">${item.meaning}</div>`;
-        
-        // 自动读
         speak(item.word);
 
     } else if (currentMode === 'spell') {
@@ -73,31 +87,34 @@ function renderCard() {
         shuffled.forEach((char) => {
             html += `<button class="letter-btn" onclick="fillLetter('${char}', '${item.word}')">${char}</button>`;
         });
-        html += `</div><div id="spell-msg" style="height:30px; color:green; font-weight:bold;"></div>`;
+        html += `</div><div id="spell-msg" style="height:30px; color:green; font-weight:bold; margin-top:10px;"></div>`;
         window.currentSpellIndex = 0;
 
     } else if (currentMode === 'quiz') {
         // --- 填空模式 ---
         html += `<div class="chinese-meaning" style="margin-bottom:20px;">${item.meaning}</div>`;
-        html += `<h3 style="color:#555;">"${item.sentence}"</h3>`;
+        
+        // 将 _____ 替换为 <span id="quiz-blank">word</span>
+        const sentenceHtml = item.sentence.replace(
+            '_____', 
+            `<span id="quiz-blank" class="quiz-blank">${item.word}</span>`
+        );
+
+        html += `<h3 style="color:#555; line-height: 1.6; margin: 10px 0;">${sentenceHtml}</h3>`;
         html += `<div style="margin-top:20px; width:100%;">`;
         
         const opts = [...item.options].sort(() => Math.random() - 0.5);
         opts.forEach(opt => {
-            // 注意：这里 onclick 多传了一个 'this'，代表当前点击的按钮元素
             html += `<button class="quiz-option" onclick="checkQuiz('${opt}', '${item.word}', this)">${opt}</button>`;
         });
         html += `</div>`;
         
-        // 新增：用于显示结果文字的区域
         html += `<div id="quiz-feedback"></div>`;
-
         speak(item.sentence.replace('_____', 'blank')); 
     }
 
-    // === 新增：统一的播放按钮（放在卡片最下方） ===
-    // 只有非拼写模式，或者你希望拼写模式也能听发音提示的话，可以都加
-    // 既然在"单词区块里的最下面"，我们加在这里：
+    // --- 底部：播放按钮 (记忆和填空模式显示，拼写模式如果不想要可以去掉这个if) ---
+    // 这里为了统一，所有模式都显示
     html += `
         <div style="margin-top: auto; padding-top: 20px;">
             <button class="card-play-btn" onclick="speakCurrentWord()">
@@ -110,24 +127,9 @@ function renderCard() {
     updateProgress();
 }
 
-// === 单元切换逻辑 (新增) ===
-window.changeUnit = function() {
-    const select = document.getElementById('unitSelect');
-    const unitId = select.value;
-    
-    // 切换数据源
-    if (allUnits[unitId]) {
-        currentUnit = allUnits[unitId];
-        currentIndex = 0; // 重置到第一个词
-        
-        // 稍微给点反馈
-        alert(`已切换到第 ${unitId} 单元，加油！`);
-        renderCard();
-    }
-}
+// === 3. 交互逻辑 ===
 
-// ... (fillLetter, checkQuiz, changeCard, switchMode 逻辑保持不变) ...
-// === 复制之前的交互逻辑 ===
+// 拼写逻辑
 window.fillLetter = function(char, targetWord) {
     const slot = document.getElementById(`slot-${window.currentSpellIndex}`);
     if (char === targetWord[window.currentSpellIndex]) {
@@ -145,57 +147,53 @@ window.fillLetter = function(char, targetWord) {
         setTimeout(() => slot.style.borderBottomColor = '#333', 500);
     }
 };
+
+// 填空逻辑 (新)
 window.checkQuiz = function(selected, answer, btnElement) {
     const feedbackEl = document.getElementById('quiz-feedback');
+    const blankEl = document.getElementById('quiz-blank');
     
-    // 为了防止多次点击已经变色的按钮，可以加个判断
-    if (btnElement.classList.contains('quiz-correct') || btnElement.classList.contains('quiz-wrong')) {
-        return;
-    }
+    if (btnElement.classList.contains('quiz-correct') || btnElement.classList.contains('quiz-wrong')) return;
+
+    const fullSentence = currentUnit[currentIndex].sentence.replace('_____', answer);
 
     if (selected === answer) {
-        // --- 答对逻辑 ---
-        
-        // 1. 按钮变绿
+        // 答对
         btnElement.classList.add('quiz-correct');
-        
-        // 2. 界面显示文字
-        feedbackEl.innerHTML = "🎉 答对啦！真棒！";
-        feedbackEl.style.color = "#4CAF50"; // 绿色文字
-        
-        // 3. 播放完整句子
-        const fullSentence = currentUnit[currentIndex].sentence.replace('_____', answer);
+        blankEl.classList.remove('wrong');
+        blankEl.classList.add('correct'); // 文字变绿可见
+        feedbackEl.innerHTML = "🎉 答对啦！";
+        feedbackEl.style.color = "#4CAF50";
         speak("Correct! " + fullSentence);
-
-        // 可选：答对后自动禁用其他按钮，防止乱点
-        const allBtns = document.querySelectorAll('.quiz-option');
-        allBtns.forEach(btn => btn.disabled = true);
-
+        
+        // 禁用其他按钮
+        document.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
     } else {
-        // --- 答错逻辑 ---
-        
-        // 1. 按钮变红
+        // 答错
         btnElement.classList.add('quiz-wrong');
+        blankEl.classList.add('wrong'); // 下划线变红
+        feedbackEl.innerHTML = "❌ 再听听看？";
+        feedbackEl.style.color = "#F44336";
+        speak(fullSentence); // 播放正确句子提示
         
-        // 2. 界面显示文字
-        feedbackEl.innerHTML = "❌ 不对哦，再试一次";
-        feedbackEl.style.color = "#F44336"; // 红色文字
-        
-        // 3. 语音提示
-        speak("Try again");
-        
-        // 4. 0.5秒后把红色去掉，让孩子可以重新点（或者保持红色表示这个已经排除）
-        // 现在的逻辑是保持红色，更有教育意义，告诉他这个选过了
+        setTimeout(() => {
+            blankEl.classList.remove('wrong');
+        }, 1000);
     }
 };
+
+// 读音按钮
 window.speakCurrentWord = function() {
     const item = currentUnit[currentIndex];
     if (currentMode === 'quiz') {
-        speak(item.sentence.replace('_____', item.word));
+        const answer = document.getElementById('quiz-blank').classList.contains('correct') ? item.word : 'blank';
+        speak(item.sentence.replace('_____', answer));
     } else {
         speak(item.word);
     }
 };
+
+// 切换卡片
 window.changeCard = function(step) {
     const newIndex = currentIndex + step;
     if (newIndex >= 0 && newIndex < currentUnit.length) {
@@ -203,15 +201,33 @@ window.changeCard = function(step) {
         renderCard();
     }
 };
+
+// 切换模式
 window.switchMode = function(mode) {
     currentMode = mode;
     document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     renderCard();
 };
+
+// 切换单元
+window.changeUnit = function() {
+    const select = document.getElementById('unitSelect');
+    const unitId = select.value;
+    if (allUnits[unitId]) {
+        currentUnit = allUnits[unitId];
+        currentIndex = 0;
+        renderCard();
+    }
+};
+
 function updateProgress() {
     const bar = document.getElementById('progressBar');
     if(bar) bar.style.width = ((currentIndex + 1) / currentUnit.length * 100) + '%';
 }
+
 // 启动
-setTimeout(() => { initVoices(); renderCard(); }, 500);
+setTimeout(() => {
+    initVoices();
+    renderCard();
+}, 500);
