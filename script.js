@@ -3,7 +3,8 @@
 const allUnits = {
     1: typeof unit1_data !== 'undefined' ? unit1_data : [],
     2: typeof unit2_data !== 'undefined' ? unit2_data : [],
-    3: typeof unit3_data !== 'undefined' ? unit3_data : []
+    3: typeof unit3_data !== 'undefined' ? unit3_data : [],
+    3: typeof unit4_data !== 'undefined' ? unit4_data : []
 };
 
 let currentUnit = allUnits[1]; // 默认 Unit 1
