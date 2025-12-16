@@ -3,162 +3,21 @@ body {
     background-color: #e0f7fa;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    /* 改为 auto，防止在内容过多时无法滚动 */
+    min-height: 100vh; 
     margin: 0;
+    /* 适配 iPhone 底部安全区 */
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .container {
-    width: 90%;
+    width: 92%; /* 手机端稍微宽一点 */
     max-width: 500px;
     text-align: center;
-    padding: 20px;
+    padding: 15px 10px; /* 减少内边距，节省手机空间 */
 }
 
-header { margin-bottom: 10px; }
-
-/* 声音选择下拉框 */
-select {
-    padding: 8px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-}
-
-/* 卡片主体 */
-.card {
-    background: white;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    transition: transform 0.3s;
-}
-
-.emoji-img { font-size: 80px; margin-bottom: 10px; }
-.english-word { font-size: 48px; font-weight: bold; color: #2196F3; margin: 10px 0; }
-.phonetic { color: #888; font-size: 18px; }
-.chinese-meaning { font-size: 24px; color: #555; margin-top: 10px; }
-
-/* === 拼写区容器 (下划线格子) === */
-#slots-area {
-    display: flex;            /* 弹性布局 */
-    flex-wrap: nowrap;        /* 【关键】强制不换行，始终在一排 */
-    justify-content: center;  /* 居中对齐 */
-    align-items: center;      
-    gap: 4px;                 /* 紧凑的间距，防止浪费空间 */
-    width: 100%;              /* 占满容器宽度 */
-    padding: 0 5px;           /* 左右留一点安全距离 */
-    box-sizing: border-box;   /* 确保padding不会撑大容器 */
-    margin-bottom: 20px;
-}
-
-/* === 单个格子样式 (自适应宽度) === */
-.letter-box {
-    /* 【关键】Flex设置 */
-    flex: 1;                  /* 权重为1：所有格子平分剩余空间 */
-    max-width: 50px;          /* 单词短时，格子最大不超过50px */
-    min-width: 25px;          /* 单词太长时，最小也要保留25px宽，保证能点 */
-    
-    /* 高度与外观 */
-    height: 50px;             /* 高度固定，整齐 */
-    border-bottom: 3px solid #333;
-    
-    /* 内部文字居中 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* 【关键】动态字体大小 */
-    /* 最小16px，首选屏幕宽度的6%，最大32px -> 防止单词太长时字体溢出 */
-    font-size: clamp(16px, 6vw, 32px); 
-    text-transform: lowercase;
-    margin: 0; /* 去掉margin，改用gap控制间距 */
-}
-
-/* === 键盘区域 (字母按钮容器) === */
-#keyboard-area {
-    display: flex;
-    flex-wrap: wrap;          /* 必须允许换行，确保大按钮能排得下 */
-    justify-content: center;
-    gap: 12px;                /* 【修改】增加按钮之间的间隙，防误触 */
-    width: 100%;
-    margin-top: 30px;         /* 离上面的填空区稍微远一点，视觉更分明 */
-    padding-bottom: 20px;     /* 底部留白 */
-}
-
-/* === 字母按钮 (加大加宽版) === */
-.letter-btn {
-    /* 颜色保持不变 */
-    background: #ff9800;
-    color: white;
-    border: none;
-    
-    /* 【核心修改：尺寸加大】 */
-    min-width: 55px;          /* 宽度加大：从40px -> 55px */
-    height: 55px;             /* 高度加大：从45px -> 55px */
-    font-size: 28px;          /* 字体加大：从20px -> 28px */
-    border-radius: 15px;      /* 圆角变大，看起来更像糖果/方块，很可爱 */
-    
-    /* 阴影加深，立体感更强 */
-    box-shadow: 0 6px #e65100;
-    
-    cursor: pointer;
-    
-    /* 内容居中 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    /* 动画效果 */
-    transition: transform 0.1s, box-shadow 0.1s;
-    
-    /* 【优化】防止手机上快速点击产生的延迟 */
-    touch-action: manipulation;
-}
-
-/* 按下时的效果 */
-.letter-btn:active {
-    transform: translateY(6px); /* 按下去的位移加大 */
-    box-shadow: none;           /* 阴影消失 */
-}
-
-/* 底部按钮 */
-.controls, .navigation { margin-top: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; }
-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 50px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.2s;
-    margin: 5px;
-}
-.mode-btn { background: #e1bee7; color: #4a148c; }
-.mode-btn.active { background: #9c27b0; color: white; font-weight: bold; }
-#playBtn { background: #4CAF50; color: white; transform: scale(1.1); }
-#prevBtn, #nextBtn { background: #2196F3; color: white; }
-
-/* 填空题选项 */
-.quiz-option {
-    display: block;
-    width: 80%;
-    margin: 10px auto;
-    padding: 10px;
-    background: #f0f0f0;
-    border-radius: 8px;
-    cursor: pointer;
-}
-.quiz-correct { background: #a5d6a7; }
-.quiz-wrong { background: #ef9a9a; }
-
-/* ... 保留之前的 CSS ... */
-
-/* 新增：顶部栏布局，让两个下拉框并排 */
+/* 顶部栏布局 */
 .top-bar {
     display: flex;
     justify-content: space-between;
@@ -166,81 +25,202 @@ button {
     margin-bottom: 15px;
 }
 .top-bar select {
-    flex: 1; /* 两个下拉框平分宽度 */
+    flex: 1;
     padding: 8px;
-    font-size: 14px;
+    font-size: 16px; /* 防止 iOS Safari 自动缩放 */
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: white;
 }
 
-/* 新增：卡片内的播放按钮样式 */
+/* 进度条 */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #b2ebf2;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background-color: #00bcd4;
+    transition: width 0.3s;
+}
+
+/* === 卡片主体 === */
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px 15px; /* 手机端减少 Padding */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    /* 移除固定高度，改为由内容撑开，但在大屏保持最小高度 */
+    min-height: 300px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+    transition: transform 0.3s;
+    margin-bottom: 15px;
+}
+
+/* 元素通用样式 */
+.emoji-img { 
+    font-size: 60px; /* 手机端稍微调小 */
+    margin-bottom: 5px; 
+}
+
+.english-word { 
+    font-size: 36px; /* 手机端缩小字体，防止换行 */
+    font-weight: bold; 
+    color: #2196F3; 
+    margin: 5px 0;
+    word-break: break-word; /* 防止超长单词撑破屏幕 */
+}
+
+.chinese-meaning { 
+    font-size: 20px; 
+    color: #555; 
+    margin-top: 5px; 
+}
+
+/* === 拼写区 (自适应) === */
+#slots-area {
+    display: flex;
+    flex-wrap: wrap; /* 允许换行，防止长单词在手机上显示不全 */
+    justify-content: center;
+    align-items: center;      
+    gap: 6px;                 
+    width: 100%;              
+    margin-bottom: 15px;
+    min-height: 50px; /* 预留位置防止跳动 */
+}
+
+.letter-box {
+    width: 40px;      /* 稍微缩小 */
+    height: 40px;
+    border-bottom: 2px solid #333; /* 线条细一点 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    text-transform: lowercase;
+}
+
+/* === 键盘区 (自适应) === */
+#keyboard-area {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px; /* 减小间距 */
+    width: 100%;
+    margin-top: 15px;
+}
+
+.letter-btn {
+    background: #ff9800;
+    color: white;
+    border: none;
+    /* 移动端关键优化：按键改小 */
+    width: 42px;         
+    height: 48px;
+    font-size: 22px;
+    border-radius: 10px;
+    box-shadow: 0 4px #e65100; /* 阴影也相应减小 */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation; /* 优化点击响应 */
+    flex-shrink: 0; /* 防止被压缩 */
+}
+
+.letter-btn:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+/* === 填空题样式 === */
+.quiz-blank {
+    display: inline-block;
+    min-width: 50px;
+    padding: 0 5px;
+    border-bottom: 2px solid #333;
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+}
+.quiz-blank.wrong { border-bottom-color: #F44336; animation: shake 0.4s; }
+.quiz-blank.correct { color: #2e7d32; border-bottom-color: #4CAF50; }
+
+.quiz-option {
+    display: block;
+    width: 90%; /* 手机端宽度占比更大 */
+    margin: 8px auto;
+    padding: 10px;
+    background: #f0f4f8;
+    border: 2px solid #e1e8ed;
+    border-radius: 10px;
+    font-size: 16px;
+    color: #333;
+}
+.quiz-correct { background-color: #c8e6c9 !important; border-color: #4caf50 !important; color: #2e7d32 !important; }
+.quiz-wrong { background-color: #ffcdd2 !important; border-color: #e57373 !important; color: #c62828 !important; }
+
+/* 底部按钮区 */
+.controls, .navigation { 
+    margin-top: 15px; 
+    display: flex; 
+    justify-content: center; 
+    flex-wrap: wrap; 
+    gap: 8px; /* 使用 gap 代替 margin */
+}
+
+button { 
+    padding: 10px 16px; 
+    border: none; 
+    border-radius: 50px; 
+    font-size: 15px; 
+    cursor: pointer; 
+    /* margin: 5px;  删除旧margin，使用gap控制 */
+}
+
+.mode-btn { background: #e1bee7; color: #4a148c; flex: 1; min-width: 80px;} /* 按钮均分宽度 */
+.mode-btn.active { background: #9c27b0; color: white; font-weight: bold; }
+#prevBtn, #nextBtn { background: #2196F3; color: white; flex: 1; }
+
 .card-play-btn {
-    background-color: #e3f2fd; /* 很浅的蓝色背景 */
+    background-color: #e3f2fd;
     color: #1565c0;
     border: 2px solid #bbdefb;
     border-radius: 30px;
-    padding: 8px 25px;
-    font-size: 16px;
+    padding: 8px 20px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.2s;
     display: flex;
     align-items: center;
     gap: 5px;
 }
-.card-play-btn:hover {
-    background-color: #bbdefb;
-    transform: scale(1.05);
-}
-.card-play-btn:active {
-    transform: scale(0.95);
-}
 
-/* 调整卡片高度，因为现在里面内容多了 */
-.card {
-    min-height: 400px; /*稍微加高一点*/
+#quiz-feedback { margin-top: 10px; font-size: 18px; font-weight: bold; min-height: 24px;}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
 }
 
-/* ... 原有代码保持不变 ... */
-
-/* 填空题选项样式优化 */
-.quiz-option {
-    display: block;
-    width: 80%;
-    margin: 10px auto;
-    padding: 12px;
-    background: #f0f4f8; /* 默认浅灰蓝 */
-    border: 2px solid #e1e8ed;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 18px;
-    transition: all 0.2s;
-    color: #333;
-}
-
-.quiz-option:hover {
-    background: #e1f5fe;
-    border-color: #81d4fa;
-}
-
-/* 答对时的绿色样式 */
-.quiz-correct {
-    background-color: #c8e6c9 !important; /* 浅绿背景 */
-    border-color: #4caf50 !important;      /*以此强调*/
-    color: #2e7d32 !important;
-    font-weight: bold;
-}
-
-/* 答错时的红色样式 */
-.quiz-wrong {
-    background-color: #ffcdd2 !important; /* 浅红背景 */
-    border-color: #e57373 !important;
-    color: #c62828 !important;
-}
-
-/* 反馈文字区域 */
-#quiz-feedback {
-    min-height: 40px; /* 预留高度，防止页面跳动 */
-    margin-top: 15px;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
+/* === 针对大屏（平板/电脑）的优化 === */
+@media (min-width: 600px) {
+    .container { padding: 20px; }
+    .card { padding: 40px; min-height: 400px; }
+    .english-word { font-size: 48px; }
+    .letter-btn { width: 55px; height: 55px; font-size: 28px; }
+    .letter-box { width: 50px; height: 50px; font-size: 32px; }
+    #slots-area { gap: 10px; }
 }
