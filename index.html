@@ -2,40 +2,27 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>少儿英语单词宝</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="container">
         <header>
             <div class="top-bar">
-                <select id="unitSelect" onchange="changeUnit()">
-                    <option value="1">Unit 1: 自然与描述</option>
-                    <option value="2">Unit 2: 我的家庭</option>
-                    <option value="3">Unit 3: 人物与故事</option> 
-                    <option value="4">Unit 4: 故事和爱</option> 
-                    <option value="5">Unit 5: 爸爸妈妈</option> 
-                    <option value="6">Unit 6: 动物</option> 
-                    <option value="7">Unit 7: 动物2</option> 
-                </select>
-                
+                <select id="unitSelect" onchange="changeUnit()"></select>
                 <select id="voiceSelect"></select>
             </div>
         </header>
 
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
 
-        <div id="game-area" class="card">
-            </div>
+        <div id="game-area" class="card"></div>
 
         <div class="controls">
-            <button class="mode-btn active" onclick="switchMode('learn')">📖 记忆</button>
-            <button class="mode-btn" onclick="switchMode('spell')">✍️ 拼写</button>
-            <button class="mode-btn" onclick="switchMode('quiz')">🧩 填空</button>
+            <button class="mode-btn active" onclick="switchMode('learn', this)">📖 记忆</button>
+            <button class="mode-btn" onclick="switchMode('spell', this)">✍️ 拼写</button>
+            <button class="mode-btn" onclick="switchMode('quiz', this)">🧩 填空</button>
         </div>
 
         <div class="navigation">
@@ -43,14 +30,8 @@
             <button id="nextBtn" onclick="changeCard(1)">下一个 ➡️</button>
         </div>
     </div>
-
-    <script src="data/unit1.js"></script>
-    <script src="data/unit2.js"></script>
-    <script src="data/unit3.js"></script>
-    <script src="data/unit4.js"></script>
-    <script src="data/unit5.js"></script>
-    <script src="data/unit6.js"></script>
-    <script src="data/unit7.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="data/data.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
