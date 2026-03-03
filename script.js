@@ -1,40 +1,47 @@
-// === 状态管理 ===
-// 确保 unit1_data 和 unit2_data 已经在 HTML 中加载
-const allUnits = {
-    1: typeof unit1_data !== 'undefined' ? unit1_data : [],
-    2: typeof unit2_data !== 'undefined' ? unit2_data : [],
-    3: typeof unit3_data !== 'undefined' ? unit3_data : [],
-    4: typeof unit4_data !== 'undefined' ? unit4_data : [],
-    5: typeof unit5_data !== 'undefined' ? unit5_data : [],
-    6: typeof unit6_data !== 'undefined' ? unit6_data : [],
-    7: typeof unit7_data !== 'undefined' ? unit7_data : []
-};
-
-let currentUnit = allUnits[1]; // 默认 Unit 1
+// === 1. 状态管理 ===
+let currentUnitId = 1;
 let currentIndex = 0;
 let currentMode = 'learn'; 
 let voices = [];
 
-// === 1. TTS 语音初始化 ===
-const voiceSelect = document.getElementById('voiceSelect');
-window.speechSynthesis.onvoiceschanged = initVoices;
+// === 2. 初始化逻辑 ===
+function initApp() {
+    const select = document.getElementById('unitSelect');
+    if (!select) return;
 
+    // 动态生成单元菜单
+    select.innerHTML = '';
+    const unitIds = Object.keys(wordData);
+    if (unitIds.length === 0) return;
+
+    unitIds.forEach(id => {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = wordData[id].title;
+        select.appendChild(opt);
+    });
+
+    currentUnitId = unitIds[0];
+    initVoices();
+    renderCard();
+}
+
+// === 3. TTS 语音初始化与播放 ===
 function initVoices() {
     voices = window.speechSynthesis.getVoices();
+    const voiceSelect = document.getElementById('voiceSelect');
+    if (!voiceSelect) return;
+
     voiceSelect.innerHTML = '';
+    const englishVoices = voices.filter(v => v.lang.includes('en'));
     
-    // 筛选英语声音
-    const englishVoices = voices.filter(voice => voice.lang.includes('en'));
-    
-    englishVoices.forEach((voice, index) => {
+    englishVoices.forEach(v => {
         const option = document.createElement('option');
-        option.textContent = `${voice.name} (${voice.lang})`;
-        option.value = index;
-        // 尝试默认选中好听的声音
-        if (voice.name.includes('Google') || voice.name.includes('Samantha') || voice.name.includes('Zira')) {
+        option.textContent = v.name;
+        option.value = v.name;
+        if (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Zira')) {
             option.selected = true;
         }
-        option.setAttribute('data-name', voice.name);
         voiceSelect.appendChild(option);
     });
 }
@@ -42,88 +49,68 @@ function initVoices() {
 function speak(text) {
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
-    msg.text = text;
-    const selectedVoiceName = voiceSelect.selectedOptions[0]?.getAttribute('data-name');
-    if (selectedVoiceName) {
-        msg.voice = voices.find(v => v.name === selectedVoiceName);
-    }
-    msg.rate = 0.8;
+    const selectedName = document.getElementById('voiceSelect').value;
+    msg.voice = voices.find(v => v.name === selectedName);
+    msg.rate = 0.8; // 稍微慢一点，适合孩子听
     window.speechSynthesis.speak(msg);
 }
 
-// === 2. 核心渲染逻辑 ===
+// === 4. 核心渲染逻辑 ===
 function renderCard() {
     const gameArea = document.getElementById('game-area');
-    const item = currentUnit[currentIndex];
+    const unit = wordData[currentUnitId]?.words || [];
+    const item = unit[currentIndex];
     
-    // 如果数据没加载好，防止报错
     if (!item) {
-        gameArea.innerHTML = "<div>暂无数据</div>";
+        gameArea.innerHTML = "<div>正在准备数据...</div>";
         return;
     }
 
-    let html = '';
-
-    // --- 顶部通用：图片 ---
-    html += `<div class="emoji-img">${item.image}</div>`;
+    let html = `<div class="emoji-img">${item.image}</div>`;
 
     if (currentMode === 'learn') {
-        // --- 记忆模式 ---
-        html += `<div class="english-word">${item.word}</div>`;
-        html += `<div class="chinese-meaning">${item.meaning}</div>`;
+        html += `
+            <div class="english-word">${item.word}</div>
+            <div class="chinese-meaning">${item.meaning}</div>
+        `;
         speak(item.word);
 
     } else if (currentMode === 'spell') {
-        // --- 拼写模式 ---
-        html += `<div class="chinese-meaning">${item.meaning}</div><br>`;
-        
-        // 填空槽
-        const letters = item.word.split('');
-        html += `<div id="slots-area">`;
-        letters.forEach((l, i) => {
-            html += `<div class="letter-box" id="slot-${i}"></div>`;
-        });
-        html += `</div><br>`;
-
-        // 键盘
-        html += `<div id="keyboard-area">`;
-        const shuffled = [...letters].sort(() => Math.random() - 0.5);
-        shuffled.forEach((char) => {
-            html += `<button class="letter-btn" onclick="fillLetter('${char}', '${item.word}')">${char}</button>`;
-        });
-        html += `</div><div id="spell-msg" style="height:30px; color:green; font-weight:bold; margin-top:10px;"></div>`;
+        html += `
+            <div class="chinese-meaning">${item.meaning}</div>
+            <div id="slots-area">
+                ${item.word.split('').map((_, i) => `<div class="letter-box" id="slot-${i}"></div>`).join('')}
+            </div>
+            <div id="keyboard-area">
+                ${[...item.word].sort(() => Math.random() - 0.5).map(char => 
+                    `<button class="letter-btn" onclick="fillLetter('${char}', '${item.word}')">${char}</button>`
+                ).join('')}
+            </div>
+            <div id="spell-msg"></div>
+        `;
         window.currentSpellIndex = 0;
 
     } else if (currentMode === 'quiz') {
-        // --- 填空模式 ---
-        html += `<div class="chinese-meaning" style="margin-bottom:20px;">${item.meaning}</div>`;
-        
-        // 将 _____ 替换为 <span id="quiz-blank">word</span>
-        const sentenceHtml = item.sentence.replace(
-            '_____', 
-            `<span id="quiz-blank" class="quiz-blank">${item.word}</span>`
-        );
-
-        html += `<h3 style="color:#555; line-height: 1.6; margin: 10px 0;">${sentenceHtml}</h3>`;
-        html += `<div style="margin-top:20px; width:100%;">`;
-        
-        const opts = [...item.options].sort(() => Math.random() - 0.5);
-        opts.forEach(opt => {
-            html += `<button class="quiz-option" onclick="checkQuiz('${opt}', '${item.word}', this)">${opt}</button>`;
-        });
-        html += `</div>`;
-        
-        html += `<div id="quiz-feedback"></div>`;
-        speak(item.sentence.replace('_____', 'blank')); 
+        html += `<div class="chinese-meaning" style="margin-bottom:15px;">${item.meaning}</div>`;
+        // 填空处隐藏文字
+        const sentenceHtml = item.sentence.replace('_____', `<span id="quiz-blank" class="quiz-blank-hidden">${item.word}</span>`);
+        html += `
+            <h3 class="quiz-sentence">${sentenceHtml}</h3>
+            <div class="options-grid">
+                ${[...item.options].sort(() => Math.random() - 0.5).map(opt => 
+                    `<button class="quiz-option" onclick="checkQuiz('${opt}', '${item.word}', this)">${opt}</button>`
+                ).join('')}
+            </div>
+            <div id="quiz-feedback"></div>
+        `;
+        // 自动朗读完整句子（包含答案）
+        speak(item.sentence.replace('_____', item.word));
     }
 
-    // --- 底部：播放按钮 (记忆和填空模式显示，拼写模式如果不想要可以去掉这个if) ---
-    // 这里为了统一，所有模式都显示
+    // 通用播放按钮
     html += `
-        <div style="margin-top: auto; padding-top: 20px;">
-            <button class="card-play-btn" onclick="speakCurrentWord()">
-                🔊 播放读音
-            </button>
+        <div style="margin-top: auto; padding-top: 10px;">
+            <button class="card-play-btn" onclick="speakCurrent()">🔊 播放读音</button>
         </div>
     `;
 
@@ -131,107 +118,118 @@ function renderCard() {
     updateProgress();
 }
 
-// === 3. 交互逻辑 ===
+// === 5. 交互功能 ===
+// === 新增：音效函数 ===
+function playSound(type) {
+    const sounds = {
+        success: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3', // 欢快成功音
+        correct: 'https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3', // 叮咚对号音
+        wrong: './sounds/mixkit-tech-break-fail-2947.wav'    // 错误提示音
+    };
+    const audio = new Audio(sounds[type]);
+    audio.play();
+}
+
+// === 新增：统一的撒花庆祝函数 ===
+function celebrate() {
+    confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff9800', '#2196F3', '#4CAF50', '#E91E63', '#9C27B0']
+    });
+}
+
 
 // 拼写逻辑
 window.fillLetter = function(char, targetWord) {
     const slot = document.getElementById(`slot-${window.currentSpellIndex}`);
+    if (!slot) return;
+
     if (char === targetWord[window.currentSpellIndex]) {
         slot.innerText = char;
-        slot.style.borderBottomColor = '#4CAF50';
+        slot.classList.remove('success-pop');
+        void slot.offsetWidth; 
+        slot.classList.add('success-pop');
+        
         window.currentSpellIndex++;
         speak(char);
+
         if (window.currentSpellIndex === targetWord.length) {
             document.getElementById('spell-msg').innerText = "✨ Excellent! ✨";
-            speak("Good job! " + targetWord);
+            // 触发音效和撒花
+            playSound('success');
+            celebrate();
+            setTimeout(() => speak(targetWord), 400);
         }
     } else {
-        speak('Oh no');
-        slot.style.borderBottomColor = 'red';
-        setTimeout(() => slot.style.borderBottomColor = '#333', 500);
+        slot.classList.add('shake');
+        setTimeout(() => slot.classList.remove('shake'), 400);
+        playSound('wrong'); // 错误音效
+        speak("Try again");
     }
 };
 
-// 填空逻辑 (新)
-window.checkQuiz = function(selected, answer, btnElement) {
-    const feedbackEl = document.getElementById('quiz-feedback');
+// 填空逻辑
+// === 修改：填空逻辑 ===
+window.checkQuiz = function(selected, answer, btn) {
     const blankEl = document.getElementById('quiz-blank');
-    
-    if (btnElement.classList.contains('quiz-correct') || btnElement.classList.contains('quiz-wrong')) return;
-
-    const fullSentence = currentUnit[currentIndex].sentence.replace('_____', answer);
+    const item = wordData[currentUnitId].words[currentIndex];
+    const fullSentence = item.sentence.replace('_____', answer);
 
     if (selected === answer) {
-        // 答对
-        btnElement.classList.add('quiz-correct');
-        blankEl.classList.remove('wrong');
-        blankEl.classList.add('correct'); // 文字变绿可见
-        feedbackEl.innerHTML = "🎉 答对啦！";
-        feedbackEl.style.color = "#4CAF50";
+        btn.classList.add('quiz-correct');
+        blankEl.classList.add('quiz-blank-visible');
+        document.getElementById('quiz-feedback').innerText = "🎉 Good Job!";
+        
+        // 填空正确时也触发撒花和音效
+        playSound('correct');
+        celebrate();
+        
         speak("Correct! " + fullSentence);
-        
-        // 禁用其他按钮
-        document.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
+        document.querySelectorAll('.quiz-option').forEach(b => b.disabled = true);
     } else {
-        // 答错
-        btnElement.classList.add('quiz-wrong');
-        blankEl.classList.add('wrong'); // 下划线变红
-        feedbackEl.innerHTML = "❌ 再听听看？";
-        feedbackEl.style.color = "#F44336";
-        speak(fullSentence); // 播放正确句子提示
-        
-        setTimeout(() => {
-            blankEl.classList.remove('wrong');
-        }, 1000);
+        btn.classList.add('quiz-wrong');
+        playSound('wrong'); // 错误音效
+        speak(fullSentence);
     }
 };
 
-// 读音按钮
-window.speakCurrentWord = function() {
-    const item = currentUnit[currentIndex];
-    if (currentMode === 'quiz') {
-        const answer = document.getElementById('quiz-blank').classList.contains('correct') ? item.word : 'blank';
-        speak(item.sentence.replace('_____', answer));
-    } else {
-        speak(item.word);
-    }
+window.speakCurrent = function() {
+    const item = wordData[currentUnitId].words[currentIndex];
+    const text = currentMode === 'quiz' ? item.sentence.replace('_____', item.word) : item.word;
+    speak(text);
 };
 
-// 切换卡片
-window.changeCard = function(step) {
-    const newIndex = currentIndex + step;
-    if (newIndex >= 0 && newIndex < currentUnit.length) {
-        currentIndex = newIndex;
+window.changeCard = (step) => {
+    const unit = wordData[currentUnitId].words;
+    const next = currentIndex + step;
+    if (next >= 0 && next < unit.length) {
+        currentIndex = next;
         renderCard();
     }
 };
 
-// 切换模式
-window.switchMode = function(mode) {
+window.switchMode = (mode, btn) => {
     currentMode = mode;
-    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
     renderCard();
 };
 
-// 切换单元
-window.changeUnit = function() {
-    const select = document.getElementById('unitSelect');
-    const unitId = select.value;
-    if (allUnits[unitId]) {
-        currentUnit = allUnits[unitId];
-        currentIndex = 0;
-        renderCard();
-    }
+window.changeUnit = () => {
+    currentUnitId = document.getElementById('unitSelect').value;
+    currentIndex = 0;
+    renderCard();
 };
 
 function updateProgress() {
+    const unit = wordData[currentUnitId].words;
     const bar = document.getElementById('progressBar');
-    if(bar) bar.style.width = ((currentIndex + 1) / currentUnit.length * 100) + '%';
+    if (bar) bar.style.width = ((currentIndex + 1) / unit.length * 100) + '%';
 }
 
-// 启动
-setTimeout(() => {
-    initVoices();
-    renderCard();
-}, 500);
+// 绑定语音变化事件
+window.speechSynthesis.onvoiceschanged = initVoices;
+// 启动应用
+setTimeout(initApp, 100);
