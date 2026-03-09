@@ -308,6 +308,102 @@ const wordData = {
                 options: ["him", "his", "her"]
             }
         ]
+    },
+    8: {
+        title: "Unit 8: 出行与地点",
+        words: [
+            {
+                word: "out",
+                meaning: "向外；在外",
+                image: "🚪",
+                sentence: "Let's go _____ and play!",
+                options: ["out", "our", "off"]
+            },
+            {
+                word: "zoo",
+                meaning: "动物园",
+                image: "🦁",
+                sentence: "We see many animals in the _____.",
+                options: ["zoo", "too", "box"]
+            },
+            {
+                word: "go",
+                meaning: "去；行走",
+                image: "🏃",
+                sentence: "I _____ to school every day.",
+                options: ["go", "get", "got"]
+            },
+            {
+                word: "zebra",
+                meaning: "斑马",
+                image: "🦓",
+                sentence: "The _____ has black and white stripes.",
+                options: ["zebra", "zero", "zoo"]
+            },
+            {
+                word: "move",
+                meaning: "移动；搬动",
+                image: "📦",
+                sentence: "Can you _____ the big box?",
+                options: ["move", "more", "make"]
+            },
+            {
+                word: "road",
+                meaning: "路；道路",
+                image: "🛣️",
+                sentence: "Look at the cars on the _____.",
+                options: ["road", "read", "ride"]
+            }，
+            {
+                word: "dance",
+                meaning: "跳舞",
+                image: "💃",
+                sentence: "She can _____ very well.",
+                options: ["dance", "drink", "drive"]
+            },
+            {
+                word: "along",
+                meaning: "沿着",
+                image: "🚶",
+                sentence: "Walk _____ the river.",
+                options: ["along", "alone", "again"]
+            },
+            {
+                word: "which",
+                meaning: "哪一个",
+                image: "🤔",
+                sentence: "_____ apple do you want?",
+                options: ["which", "what", "white"]
+            },
+            {
+                word: "word",
+                meaning: "单词；字",
+                image: "📝",
+                sentence: "I can spell this _____.",
+                options: ["word", "wood", "work"]
+            },
+            {
+                word: "stone",
+                meaning: "石头",
+                image: "🪨",
+                sentence: "Don't throw the _____.",
+                options: ["stone", "store", "star"]
+            },
+            {
+                word: "hat",
+                meaning: "帽子",
+                image: "👒",
+                sentence: "Put on your _____.",
+                options: ["hat", "hot", "hit"]
+            },
+            {
+                word: "shoe",
+                meaning: "鞋子",
+                image: "👟",
+                sentence: "Where is my left _____?",
+                options: ["shoe", "shop", "show"]
+            }
+        ]
     }
     // 继续添加更多单元...
 };
