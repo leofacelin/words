@@ -1,7 +1,7 @@
 // data.js
 const wordData = {
     1: {
-        title: "Unit 1: 自然与描述",
+        title: "自然与描述",
         words: [
             { word: "show", meaning: "给...看", image: "🤲", sentence: "_____ me your book.", options: ["show", "look", "see"] },
             { word: "baby", meaning: "幼崽；雏鸟", image: "🐣", sentence: "The _____ bird is cute.", options: ["baby", "boy", "egg"] },
@@ -14,7 +14,7 @@ const wordData = {
         ]
     },
     2: {
-        title: "Unit 2: 我的家庭",
+        title: "我的家庭",
         words: [
             {
                 word: "family",
