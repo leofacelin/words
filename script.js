@@ -7,7 +7,7 @@ const audioCache = {}; // 用于存储已生成的语音，节省额度并消除
 
 // ⚠️ 请在此处填入你的 ElevenLabs 信息
 const ELEVEN_LABS_API_KEY = 'sk_30d82e6a0ca783be2cef5f796ac3f145c57c2b2fb55b0c0f'; 
-const VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // 默认 Adam，可换成你喜欢的 Voice ID
+const VOICE_ID = 'Xb7hH9S3S6fS56H2N6S6'; // 默认 Adam，可换成你喜欢的 Voice ID
 
 // 修改 initApp
 function initApp() {
