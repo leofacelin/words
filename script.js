@@ -9,7 +9,7 @@ const audioCache = {}; // 用于存储已生成的语音，节省额度并消除
 const ELEVEN_LABS_API_KEY = 'sk_30d82e6a0ca783be2cef5f796ac3f145c57c2b2fb55b0c0f'; 
 const VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // 默认 Adam，可换成你喜欢的 Voice ID
 
-// === 2. 初始化逻辑 ===
+// 修改 initApp
 function initApp() {
     const select = document.getElementById('unitSelect');
     if (!select) return;
@@ -26,7 +26,16 @@ function initApp() {
     });
 
     currentUnitId = unitIds[0];
-    renderCard();
+    // 这里不再调用 renderCard()
+}
+
+// 新增 startApp 函数
+function startApp() {
+    // 激活音频上下文（对某些浏览器有效）
+    const dummyAudio = new Audio();
+    dummyAudio.play().catch(() => {}); 
+    
+    renderCard(); // 正式进入第一课
 }
 
 // === 3. 核心语音功能 (ElevenLabs + Fallback) ===
