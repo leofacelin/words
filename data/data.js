@@ -310,7 +310,7 @@ const wordData = {
         ]
     },
     8: {
-        title: "Unit 8: 出行与地点",
+        title: "出行与地点",
         words: [
             {
                 word: "out",
