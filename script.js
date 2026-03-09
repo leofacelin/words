@@ -1,15 +1,19 @@
-// === 1. 状态管理 ===
+// === 1. 状态管理与配置 ===
 let currentUnitId = 1;
 let currentIndex = 0;
 let currentMode = 'learn'; 
 let voices = [];
+const audioCache = {}; // 用于存储已生成的语音，节省额度并消除延迟
+
+// ⚠️ 请在此处填入你的 ElevenLabs 信息
+const ELEVEN_LABS_API_KEY = 'sk_30d82e6a0ca783be2cef5f796ac3f145c57c2b2fb55b0c0f'; 
+const VOICE_ID = 'y1adqrqs4jNaANXsIZnD'; // 默认 Adam，可换成你喜欢的 Voice ID
 
 // === 2. 初始化逻辑 ===
 function initApp() {
     const select = document.getElementById('unitSelect');
     if (!select) return;
 
-    // 动态生成单元菜单
     select.innerHTML = '';
     const unitIds = Object.keys(wordData);
     if (unitIds.length === 0) return;
@@ -22,49 +26,92 @@ function initApp() {
     });
 
     currentUnitId = unitIds[0];
-    initVoices();
     renderCard();
 }
 
-// === 3. TTS 语音初始化与播放 ===
-function initVoices() {
-    voices = window.speechSynthesis.getVoices();
-    const voiceSelect = document.getElementById('voiceSelect');
-    if (!voiceSelect) return;
+// === 3. 核心语音功能 (ElevenLabs + Fallback) ===
+async function speak(text) {
+    if (!text) return;
 
-    voiceSelect.innerHTML = '';
-    const englishVoices = voices.filter(v => v.lang.includes('en'));
-    
-    englishVoices.forEach(v => {
-        const option = document.createElement('option');
-        option.textContent = v.name;
-        option.value = v.name;
-        if (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Zira')) {
-            option.selected = true;
-        }
-        voiceSelect.appendChild(option);
-    });
+    // 1. 检查缓存
+    if (audioCache[text]) {
+        const audio = new Audio(audioCache[text]);
+        audio.play();
+        return;
+    }
+
+    // 2. 尝试调用 ElevenLabs
+    try {
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'xi-api-key': ELEVEN_LABS_API_KEY
+            },
+            body: JSON.stringify({
+                text: text,
+                model_id: 'eleven_turbo_v2_5', // Turbo 模型速度最快，延迟最低
+                voice_settings: {
+                    stability: 0.5,
+                    similarity_boost: 0.75
+                }
+            })
+        });
+
+        if (!response.ok) throw new Error('ElevenLabs API Error');
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        
+        // 存入缓存并播放
+        audioCache[text] = url;
+        const audio = new Audio(url);
+        audio.play();
+    } catch (error) {
+        console.error('ElevenLabs 失败，尝试系统语音:', error);
+        fallbackSpeak(text);
+    }
 }
 
-function speak(text) {
+// 系统自带语音作为兜底方案
+function fallbackSpeak(text) {
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
-    const selectedName = document.getElementById('voiceSelect').value;
-    msg.voice = voices.find(v => v.name === selectedName);
-    msg.rate = 0.8; // 稍微慢一点，适合孩子听
+    msg.lang = 'en-US';
+    msg.rate = 0.8;
     window.speechSynthesis.speak(msg);
 }
 
-// === 4. 核心渲染逻辑 ===
+// 辅助音效
+function playSound(type) {
+    const sounds = {
+        success: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
+        correct: 'https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3',
+        wrong: 'https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3'
+    };
+    const audio = new Audio(sounds[type]);
+    audio.play();
+}
+
+// 撒花庆祝
+function celebrate() {
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#ff9800', '#2196F3', '#4CAF50', '#E91E63', '#9C27B0']
+        });
+    }
+}
+
+// === 4. 渲染与交互逻辑 ===
 function renderCard() {
     const gameArea = document.getElementById('game-area');
     const unit = wordData[currentUnitId]?.words || [];
     const item = unit[currentIndex];
     
-    if (!item) {
-        gameArea.innerHTML = "<div>正在准备数据...</div>";
-        return;
-    }
+    if (!item) return;
 
     let html = `<div class="emoji-img">${item.image}</div>`;
 
@@ -92,7 +139,6 @@ function renderCard() {
 
     } else if (currentMode === 'quiz') {
         html += `<div class="chinese-meaning" style="margin-bottom:15px;">${item.meaning}</div>`;
-        // 填空处隐藏文字
         const sentenceHtml = item.sentence.replace('_____', `<span id="quiz-blank" class="quiz-blank-hidden">${item.word}</span>`);
         html += `
             <h3 class="quiz-sentence">${sentenceHtml}</h3>
@@ -103,11 +149,9 @@ function renderCard() {
             </div>
             <div id="quiz-feedback"></div>
         `;
-        // 自动朗读完整句子（包含答案）
         speak(item.sentence.replace('_____', item.word));
     }
 
-    // 通用播放按钮
     html += `
         <div style="margin-top: auto; padding-top: 10px;">
             <button class="card-play-btn" onclick="speakCurrent()">🔊 播放读音</button>
@@ -118,30 +162,6 @@ function renderCard() {
     updateProgress();
 }
 
-// === 5. 交互功能 ===
-// === 新增：音效函数 ===
-function playSound(type) {
-    const sounds = {
-        success: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3', // 欢快成功音
-        correct: 'https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3', // 叮咚对号音
-        wrong: './sounds/mixkit-tech-break-fail-2947.wav'    // 错误提示音
-    };
-    const audio = new Audio(sounds[type]);
-    audio.play();
-}
-
-// === 新增：统一的撒花庆祝函数 ===
-function celebrate() {
-    confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#ff9800', '#2196F3', '#4CAF50', '#E91E63', '#9C27B0']
-    });
-}
-
-
-// 拼写逻辑
 window.fillLetter = function(char, targetWord) {
     const slot = document.getElementById(`slot-${window.currentSpellIndex}`);
     if (!slot) return;
@@ -157,21 +177,18 @@ window.fillLetter = function(char, targetWord) {
 
         if (window.currentSpellIndex === targetWord.length) {
             document.getElementById('spell-msg').innerText = "✨ Excellent! ✨";
-            // 触发音效和撒花
             playSound('success');
             celebrate();
-            setTimeout(() => speak(targetWord), 400);
+            setTimeout(() => speak(targetWord), 600);
         }
     } else {
         slot.classList.add('shake');
         setTimeout(() => slot.classList.remove('shake'), 400);
-        playSound('wrong'); // 错误音效
+        playSound('wrong');
         speak("Try again");
     }
 };
 
-// 填空逻辑
-// === 修改：填空逻辑 ===
 window.checkQuiz = function(selected, answer, btn) {
     const blankEl = document.getElementById('quiz-blank');
     const item = wordData[currentUnitId].words[currentIndex];
@@ -181,16 +198,13 @@ window.checkQuiz = function(selected, answer, btn) {
         btn.classList.add('quiz-correct');
         blankEl.classList.add('quiz-blank-visible');
         document.getElementById('quiz-feedback').innerText = "🎉 Good Job!";
-        
-        // 填空正确时也触发撒花和音效
         playSound('correct');
         celebrate();
-        
         speak("Correct! " + fullSentence);
         document.querySelectorAll('.quiz-option').forEach(b => b.disabled = true);
     } else {
         btn.classList.add('quiz-wrong');
-        playSound('wrong'); // 错误音效
+        playSound('wrong');
         speak(fullSentence);
     }
 };
@@ -229,7 +243,5 @@ function updateProgress() {
     if (bar) bar.style.width = ((currentIndex + 1) / unit.length * 100) + '%';
 }
 
-// 绑定语音变化事件
-window.speechSynthesis.onvoiceschanged = initVoices;
-// 启动应用
-setTimeout(initApp, 100);
+// 启动
+window.onload = initApp;
