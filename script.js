@@ -61,7 +61,7 @@ async function speak(text) {
                 text: text,
                 model_id: 'eleven_turbo_v2_5', // Turbo 模型速度最快，延迟最低
                 voice_settings: {
-                    stability: 0.5,
+                    stability: 0.8,
                     similarity_boost: 0.75
                 }
             })
@@ -99,6 +99,7 @@ function playSound(type) {
         wrong: 'https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3'
     };
     const audio = new Audio(sounds[type]);
+    audio.playbackRate = 0.8; // 将播放速度设为 0.8 倍（较慢）
     audio.play();
 }
 
