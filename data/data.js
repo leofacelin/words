@@ -98,5 +98,22 @@ const wordData = {
             { word: "hat", meaning: "帽子", image: "👒", sentence: "Put on your _____.", options: ["hat", "hot", "hit"] },
             { word: "shoe", meaning: "鞋子", image: "👟", sentence: "Where is my left _____?", options: ["shoe", "shop", "show"] }
         ]
+    },
+    9: {
+        title: "一单元巩固",
+        words: [
+            { word: "animal", meaning: "动物", image: "🦁", sentence: "A lion is a big _____.", options: ["animal", "apple", "angry"] },
+            { word: "bear", meaning: "熊", image: "🐻", sentence: "The brown _____ is sleeping.", options: ["bear", "pear", "beer"] },
+            { word: "draw", meaning: "画", image: "🎨", sentence: "I can _____ a big house.", options: ["draw", "drink", "dress"] },
+            { word: "strong", meaning: "强壮的", image: "💪", sentence: "The lion is very _____.", options: ["strong", "story", "string"] },
+            { word: "white", meaning: "白色", image: "⚪", sentence: "The snow is _____.", options: ["white", "water", "where"] },
+            { word: "brown", meaning: "棕色", image: "🟤", sentence: "The bear is _____.", options: ["brown", "bread", "broom"] },
+            { word: "along", meaning: "沿着", image: "🚶", sentence: "Walk _____ the river.", options: ["along", "alone", "again"] },
+            { word: "which", meaning: "哪一个", image: "🤔", sentence: "_____ apple do you want?", options: ["which", "what", "white"] },
+            { word: "word", meaning: "单词；字", image: "📝", sentence: "I can spell this _____.", options: ["word", "wood", "work"] },
+            { word: "stone", meaning: "石头", image: "🪨", sentence: "Don't throw the _____.", options: ["stone", "store", "star"] },
+            { word: "hat", meaning: "帽子", image: "👒", sentence: "Put on your _____.", options: ["hat", "hot", "hit"] },
+            { word: "shoe", meaning: "鞋子", image: "👟", sentence: "Where is my left _____?", options: ["shoe", "shop", "show"] }
+        ]
     }
 };
