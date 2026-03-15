@@ -2,92 +2,86 @@
 let currentUnitId = 1;
 let currentIndex = 0;
 let currentMode = 'learn'; 
-let voices = [];
-const audioCache = {}; // 用于存储已生成的语音，节省额度并消除延迟
+let voices = []; // 存储系统获取到的语音对象
 
-// ⚠️ 请在此处填入你的 ElevenLabs 信息
-const ELEVEN_LABS_API_KEY = 'sk_30d82e6a0ca783be2cef5f796ac3f145c57c2b2fb55b0c0f'; 
-const VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // 默认 Adam，可换成你喜欢的 Voice ID
-
-// 修改 initApp
+// === 2. 初始化应用 ===
 function initApp() {
+    // 1. 初始化单元选择
     const select = document.getElementById('unitSelect');
-    if (!select) return;
+    if (select) {
+        select.innerHTML = '';
+        const unitIds = Object.keys(wordData);
+        unitIds.forEach(id => {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = wordData[id].title;
+            select.appendChild(opt);
+        });
+        currentUnitId = unitIds[0];
+    }
 
-    select.innerHTML = '';
-    const unitIds = Object.keys(wordData);
-    if (unitIds.length === 0) return;
+    // 2. 初始化语音选择列表
+    loadVoices();
+    // 关键：某些浏览器需要监听这个事件来异步加载语音
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+}
 
-    unitIds.forEach(id => {
-        const opt = document.createElement('option');
-        opt.value = id;
-        opt.textContent = wordData[id].title;
-        select.appendChild(opt);
+// 获取并填充语音列表
+function loadVoices() {
+    // 获取系统支持的所有语音
+    const allVoices = window.speechSynthesis.getVoices();
+    const voiceSelect = document.getElementById('voiceSelect');
+    if (!voiceSelect || allVoices.length === 0) return;
+
+    voices = allVoices;
+    voiceSelect.innerHTML = '';
+
+    // 过滤出所有英文语音 (en-)，防止列表过长干扰选择
+    const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+
+    englishVoices.forEach((voice) => {
+        const option = document.createElement('option');
+        option.textContent = `${voice.name} (${voice.lang})`;
+        // 存储该语音在原始 voices 数组中的索引，方便后续调用
+        option.value = voices.indexOf(voice); 
+        
+        // 尝试默认选择一个 Google 的美音（通常效果较好）
+        if (voice.name === 'Google US English') {
+            option.selected = true;
+        }
+        voiceSelect.appendChild(option);
     });
-
-    currentUnitId = unitIds[0];
-    // 这里不再调用 renderCard()
 }
 
-// 新增 startApp 函数
 function startApp() {
-    // 激活音频上下文（对某些浏览器有效）
-    const dummyAudio = new Audio();
-    dummyAudio.play().catch(() => {}); 
-    
-    renderCard(); // 正式进入第一课
+    window.speechSynthesis.cancel(); 
+    renderCard(); 
 }
 
-// === 3. 核心语音功能 (ElevenLabs + Fallback) ===
-async function speak(text) {
+// === 3. 核心语音功能 (使用用户选择的语音) ===
+function speak(text) {
     if (!text) return;
 
-    // 1. 检查缓存
-    if (audioCache[text]) {
-        const audio = new Audio(audioCache[text]);
-        audio.play();
-        return;
-    }
-
-    // 2. 尝试调用 ElevenLabs
-    try {
-        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'xi-api-key': ELEVEN_LABS_API_KEY
-            },
-            body: JSON.stringify({
-                text: text,
-                model_id: 'eleven_multilingual_v2', // Turbo 模型速度最快，延迟最低
-                voice_settings: {
-                    stability: 0.8,
-                    similarity_boost: 0.75
-                }
-            })
-        });
-
-        if (!response.ok) throw new Error('ElevenLabs API Error');
-
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        
-        // 存入缓存并播放
-        audioCache[text] = url;
-        const audio = new Audio(url);
-        audio.play();
-    } catch (error) {
-        console.error('ElevenLabs 失败，尝试系统语音:', error);
-        fallbackSpeak(text);
-    }
-}
-
-// 系统自带语音作为兜底方案
-function fallbackSpeak(text) {
     window.speechSynthesis.cancel();
+
     const msg = new SpeechSynthesisUtterance(text);
-    msg.lang = 'en-US';
-    msg.rate = 0.8;
+    
+    // 获取下拉框当前选择的语音索引
+    const voiceSelect = document.getElementById('voiceSelect');
+    const selectedVoiceIndex = voiceSelect.value;
+    
+    // 如果索引有效，则设置对应的语音对象
+    if (voices[selectedVoiceIndex]) {
+        msg.voice = voices[selectedVoiceIndex];
+        msg.lang = voices[selectedVoiceIndex].lang;
+    } else {
+        msg.lang = 'en-US'; // 兜底方案
+    }
+    
+    msg.rate = 0.8; 
+    msg.pitch = 1.0; 
     window.speechSynthesis.speak(msg);
 }
 
@@ -99,7 +93,7 @@ function playSound(type) {
         wrong: 'https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3'
     };
     const audio = new Audio(sounds[type]);
-    audio.playbackRate = 0.8; // 将播放速度设为 0.8 倍（较慢）
+    audio.playbackRate = 1.5; 
     audio.play();
 }
 
@@ -172,6 +166,7 @@ function renderCard() {
     updateProgress();
 }
 
+// ... 保持原有 window.fillLetter, window.checkQuiz, window.changeCard 等函数不变 ...
 window.fillLetter = function(char, targetWord) {
     const slot = document.getElementById(`slot-${window.currentSpellIndex}`);
     if (!slot) return;
@@ -253,5 +248,4 @@ function updateProgress() {
     if (bar) bar.style.width = ((currentIndex + 1) / unit.length * 100) + '%';
 }
 
-// 启动
 window.onload = initApp;
