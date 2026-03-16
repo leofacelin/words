@@ -115,5 +115,22 @@ const wordData = {
             { word: "hat", meaning: "帽子", image: "👒", sentence: "Put on your _____.", options: ["hat", "hot", "hit"] },
             { word: "shoe", meaning: "鞋子", image: "👟", sentence: "Where is my left _____?", options: ["shoe", "shop", "show"] }
         ]
+    },
+    10: {
+        title: "Unit 2: 我的身体",
+        words: [
+            { word: "body", meaning: "身体", image: "🧍", sentence: "Exercise is good for your _____.", options: ["body", "boy", "bed"] },
+            { word: "head", meaning: "头", image: "🙆", sentence: "Touch your _____, please.", options: ["head", "hand", "hair"] },
+            { word: "eye", meaning: "眼睛", image: "👁️", sentence: "I have two _____s.", options: ["eye", "ear", "eat"] },
+            { word: "ear", meaning: "耳朵", image: "👂", sentence: "I listen with my _____s.", options: ["ear", "eye", "egg"] },
+            { word: "mouth", meaning: "嘴巴", image: "👄", sentence: "Open your _____, please.", options: ["mouth", "mother", "moon"] },
+            { word: "nose", meaning: "鼻子", image: "👃", sentence: "I smell with my _____.", options: ["nose", "not", "name"] },
+            { word: "touch", meaning: "触摸", image: "👈", sentence: "Don't _____ the painting.", options: ["touch", "teacher", "table"] },
+            { word: "hand", meaning: "手", image: "✋", sentence: "Wash your _____s before eating.", options: ["hand", "head", "hat"] },
+            { word: "arm", meaning: "手臂", image: "💪", sentence: "My _____s are strong.", options: ["arm", "art", "ant"] },
+            { word: "leg", meaning: "腿", image: "🦵", sentence: "The desk has four _____s.", options: ["leg", "let", "log"] },
+            { word: "foot", meaning: "脚", image: "🦶", sentence: "I go to school on _____.", options: ["foot", "food", "face"] },
+            { word: "toe", meaning: "脚趾", image: "👣", sentence: "I have ten _____s.", options: ["toe", "tea", "too"] }
+        ]
     }
 };
